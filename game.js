@@ -55,63 +55,122 @@
     fontFamily: 'monospace', fontSize: size + 'px', color: hex(color),
     stroke: hex(DB16.void), strokeThickness: 3, align: 'center'
   });
+  const PAL = Object.freeze({
+    '.': null, v: DB16.void, r: DB16.darkred, n: DB16.navy,
+    g: DB16.gray, b: DB16.brown, e: DB16.green, R: DB16.red,
+    w: DB16.warm, B: DB16.blue, O: DB16.orange, c: DB16.cold,
+    L: DB16.lgreen, s: DB16.skin, C: DB16.cyan, Y: DB16.yellow,
+    W: DB16.white
+  });
+  const pixelGrid = (w, h, rows) => {
+    const grid=Array.from({length:h},()=>Array(w).fill('.'));
+    const top=Math.floor((h-rows.length)/2);
+    rows.forEach((row,ry)=>{
+      const left=Math.floor((w-row.length)/2);
+      [...row].forEach((ch,rx)=>{
+        if(top+ry>=0&&top+ry<h&&left+rx>=0&&left+rx<w)grid[top+ry][left+rx]=ch;
+      });
+    });
+    return grid.map(row=>row.join(''));
+  };
+  const renderPixelArt = (frames, scale=1) => {
+    const list=Array.isArray(frames[0])?frames:[frames];
+    const h=list[0].length,w=list[0][0].length;
+    const canvas=document.createElement('canvas');
+    canvas.width=w*scale*list.length;canvas.height=h*scale;
+    const ctx=canvas.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    list.forEach((grid,frame)=>grid.forEach((row,y)=>[...row].forEach((ch,x)=>{
+      const color=PAL[ch];
+      if(color!==undefined&&color!==null){
+        ctx.fillStyle=hex(color);
+        ctx.fillRect((frame*w+x)*scale,y*scale,scale,scale);
+      }
+    })));
+    return {canvas,frameWidth:w*scale,frameHeight:h*scale};
+  };
+
+  const ART = {
+    player: [
+      pixelGrid(24,24,[
+        '...........CC...........','..........CWWC..........','..........cWWc..........',
+        '.........ccBBcc.........','.........cBBBBc.........','........ccBnnBcc........',
+        '.......cBBBnnBBBc.......','......cBBBBBBBBBBc......','.....cBBcBBBBBBcBBc.....',
+        '...ccBBBBcBBBBcBBBBcc...','..cBBBBBBcBBBBcBBBBBBc..','.cBBBBBBBBBBBBBBBBBBBBc.',
+        'cBBBBBBccBBBBBBBBccBBBBBc','..cBBBccBBBBBBBBccBBBc..','....ccBBBBBBBBBBBBcc....',
+        '.......cBBBBBBBBc.......','........cBBBBBBc........','.........cBBBBc.........',
+        '.........cBccBc.........','.........OO..OO.........','........OYO..OYO........',
+        '.........O....O.........'
+      ]),
+      pixelGrid(24,24,[
+        '...........CC...........','..........CWWC..........','..........cWWc..........',
+        '.........ccBBcc.........','.........cBBBBc.........','........ccBnnBcc........',
+        '.......cBBBnnBBBc.......','......cBBBBBBBBBBc......','.....cBBcBBBBBBcBBc.....',
+        '...ccBBBBcBBBBcBBBBcc...','..cBBBBBBcBBBBcBBBBBBc..','.cBBBBBBBBBBBBBBBBBBBBc.',
+        'cBBBBBBccBBBBBBBBccBBBBBc','..cBBBccBBBBBBBBccBBBc..','....ccBBBBBBBBBBBBcc....',
+        '.......cBBBBBBBBc.......','........cBBBBBBc........','.........cBBBBc.........',
+        '.........cBccBc.........','.........YY..YY.........','........OYO..OYO........',
+        '........O.O..O.O........','.........R....R.........'
+      ])
+    ],
+    bullet: pixelGrid(4,8,['.WW.','WYYW','WYYW','WYYW','WYYW','.OO.']),
+    enemyBullet: pixelGrid(6,6,['..RR..','.ROOR.','ROYOR.','ROOOR.','.RRR.','..R...']),
+    missilePlayer: pixelGrid(8,16,['...W....','..WWW...','..WCW...','..WCW...','..WCW...','.cCCCc..','.cCCCc..','c.CCC.c.','..CCC...','..COC...','..OYO...','.O...O..']),
+    particle: [
+      pixelGrid(5,5,['..Y..','.YOY.','YOWOY','.YOY.','..Y..']),
+      pixelGrid(5,5,['O...O','..R..','.R.R.','R...R','..R..']),
+      pixelGrid(5,5,['R....','....R','..r..','.r...','...r.']),
+      pixelGrid(5,5,['.....','..r..','.....','.....','.....'])
+    ],
+    drone: pixelGrid(16,16,['.......r........','......rRr.......','...rrrRRRrrr....','..rRRRRRRRRRr...','.rRRrRRRRRrRRr..','rRRRrRYYRrRRRRr.','rrRRRRWWRRRRRrr.','..rrRRRRRRRrr...','....rrRRRrr.....','......rRr.......','.......r........']),
+    enemyFighter: pixelGrid(24,24,['...........R............','..........RRR...........','.........rRORr..........','........rRRRRRr.........','.......rRRrrrRRr........','......rRRRrrrRRRr.......','.....rRRRRRRRRRRRr......','...rrRRrRRRRRRRrRRrr....','.rrRRRrrRRRRRRRrrRRRrr..','rRRRRrrrRRRYYRRRrrrRRRRr','..rrr..rRRROORRRr..rrr..','.......rrRRRRRRRrr.......','.........rRRRRRr.........','..........rRRRr..........','..........OO.OO..........','.........OYO.OYO.........']),
+    enemyMissile: pixelGrid(8,24,['...W....','..WWW...','..WsW...','..RRR...','..RrR...','..RrR...','..RrR...','..RrR...','..ROR...','..RrR...','..RrR...','.rRrRr..','r.RrR.r.','..OOO...','.O...O..','O.....O.']),
+    turret: pixelGrid(28,20,['...........RRRR.............','...........RYYR.............','...........RrrR.............','..........rRrrRr............','.........rrRRRRrr...........','.......bbrrrrrrrrbb.........','.....bbbwrrrrrrrrwbbb.......','...bbbbbbbbbbbbbbbbbbbb.....','..bwwwbbbbbbbbbbbbbbwwwb....','.bwwwwbggggggggggbwwwwb....','bbbbbgggccccccccgggbbbbb....','....gggggggggggggggg........','...gvvvggvvvvvvggvvvg.......','...gggggggggggggggggg.......']),
+    heavy: pixelGrid(32,32,['...............RR...............','..............RYYR..............','..........rrrrRRRRrrrr..........','........rrRRRRRRRRRRRRrr........','......rrRRRrrRRRRRRrrRRRrr......','....rrRRRRrrrRRRRRRrrrRRRRrr....','...rRRRRRrrrrRRRRRRrrrrRRRRRr...','..rRRRRRRRRRRRRRRRRRRRRRRRRRRr..','.rRRRrrRRRrrRRRRRRrrRRRrrRRRRr.','rRRRRrrRRRrrRRYYRRrrRRRrrRRRRRr','rRRRRRRRRRRRRROORRRRRRRRRRRRRRr','rrRRRrrrRRRrggggggRrRRRrrrRRRrr','..rrr...rRRggcWWcggRRr...rrr...','.......rRRRggccccggRRRr.........','........rrRRggggggRRrr..........','..........rRRRRRRRRr............','..........rrrRRRRrrr............','...........OO....OO.............','..........OYO....OYO............']),
+    star: pixelGrid(5,5,['..W..','..W..','WWWWW','..W..','..W..']),
+    cloud: pixelGrid(32,12,['..........cccc..................','.......cccWWWWccc...............','...ccccWWWWWWWWWWcccc...........','.ccWWWWWWWWWWWWWWWWWWcc.........','cWWWWWWWWWWWWWWWWWWWWWWc........','cccccccccccccccccccccccccc........']),
+    debris: pixelGrid(8,8,['..g.....','.gwg....','gggg....','..ggg...','...g....','...b....']),
+    cable: pixelGrid(16,16,['vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv','vvggggwcggggvvvv']),
+    beam: pixelGrid(128,16,[
+      'OOrrbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbrrOO',
+      'YYRwccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccwRYY',
+      'OOrrbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbrrOO',
+      '....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....bb....',
+      '.....bb..bb......bb..bb......bb..bb......bb..bb......bb..bb......bb..bb......bb..bb......bb..bb......bb..bb......bb..bb.....',
+      '......bbbb........bbbb........bbbb........bbbb........bbbb........bbbb........bbbb........bbbb........bbbb........bbbb......'
+    ]),
+    platform: pixelGrid(128,24,[
+      'gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg',
+      'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+      'rrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYYrrrrYYYY',
+      'bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....bbbb....',
+      '.bb......bb......bb......bb......bb......bb......bb......bb......bb......bb......bb......bb......bb......bb......bb......bb.....'
+    ]),
+    shockwave: pixelGrid(17,17,[
+      '......CCCCC......','....CC.....CC....','...C.........C...','..C...........C..',
+      '.C.............C.','C...............C','C...............C','C...............C',
+      'C...............C','C...............C','C...............C','.C.............C.',
+      '..C...........C..','...C.........C...','....CC.....CC....','......CCCCC......'
+    ]),
+    flare: pixelGrid(9,9,[
+      '....W....','....W....','....Y....','WWYOOOYWW','WYOYWWOYW',
+      'WWYOOOYWW','....Y....','....W....','....W....'
+    ])
+  };
 
   class BootScene extends Phaser.Scene {
     constructor() { super('BootScene'); }
     create() {
       Runtime.currentScene = 'BootScene';
-      const make = (key, w, h, draw) => {
-        const g = this.make.graphics({ x: 0, y: 0, add: false });
-        draw(g); g.generateTexture(key, w, h); g.destroy();
-      };
-      make('player0', 32, 32, g => {
-        g.fillStyle(DB16.blue).fillTriangle(16,1,3,27,29,27);
-        g.fillStyle(DB16.cold).fillRect(14,4,4,20);
-        g.fillStyle(DB16.navy).fillTriangle(16,6,12,15,20,15);
-        g.fillStyle(DB16.orange).fillRect(12,27,3,4).fillRect(18,27,3,4);
-        g.fillStyle(DB16.white).fillRect(15,2,2,3);
+      Object.entries(ART).forEach(([key,grid])=>{
+        const art=renderPixelArt(grid,key==='player'?2:1);
+        const textureKey=key==='player'?'player0':key;
+        this.textures.addSpriteSheet(textureKey,art.canvas,{
+          frameWidth:art.frameWidth,frameHeight:art.frameHeight
+        });
       });
-      make('player1', 32, 32, g => {
-        g.fillStyle(DB16.blue).fillTriangle(16,1,3,27,29,27);
-        g.fillStyle(DB16.cold).fillRect(14,4,4,20);
-        g.fillStyle(DB16.navy).fillTriangle(16,6,12,15,20,15);
-        g.fillStyle(DB16.yellow).fillRect(12,27,3,5).fillRect(18,27,3,5);
-      });
-      make('bullet', 4, 8, g => g.fillStyle(DB16.yellow).fillRect(0,0,4,8));
-      make('enemyBullet', 6, 6, g => g.fillStyle(DB16.red).fillRect(0,0,6,6));
-      make('missilePlayer', 6, 14, g => {
-        g.fillStyle(DB16.white).fillRect(1,0,4,8);
-        g.fillStyle(DB16.cyan).fillTriangle(0,8,6,8,3,14);
-      });
-      make('particle', 3, 3, g => g.fillStyle(DB16.orange).fillRect(0,0,3,3));
-      make('drone', 16, 16, g => {
-        g.fillStyle(DB16.red).fillRect(4,4,8,8);
-        g.fillStyle(DB16.warm).fillRect(0,7,16,3);
-        g.fillStyle(DB16.white).fillRect(7,6,2,2);
-      });
-      make('enemyFighter', 24, 24, g => {
-        g.fillStyle(DB16.red).fillTriangle(12,23,2,3,22,3);
-        g.fillStyle(DB16.darkred).fillRect(10,5,4,14);
-        g.fillStyle(DB16.yellow).fillRect(11,16,2,3);
-      });
-      make('enemyMissile', 8, 16, g => {
-        g.fillStyle(DB16.red).fillRect(2,3,4,13);
-        g.fillStyle(DB16.white).fillTriangle(2,3,6,3,4,0);
-      });
-      make('turret', 28, 20, g => {
-        g.fillStyle(DB16.brown).fillRect(2,8,24,12);
-        g.fillStyle(DB16.warm).fillRect(8,4,12,10);
-        g.fillStyle(DB16.red).fillRect(12,0,4,8);
-      });
-      make('heavy', 32, 32, g => {
-        g.fillStyle(DB16.darkred).fillRect(4,4,24,24);
-        g.fillStyle(DB16.red).fillTriangle(16,1,1,26,31,26);
-        g.fillStyle(DB16.gray).fillRect(8,13,16,8);
-        g.fillStyle(DB16.yellow).fillRect(14,8,4,4);
-      });
-      make('star', 2, 2, g => g.fillStyle(DB16.white).fillRect(0,0,2,2));
-      make('cloud', 32, 12, g => g.fillStyle(DB16.cold).fillRect(2,4,28,6).fillRect(8,1,12,10));
-      this.anims.create({ key: 'thrust', frames: [{key:'player0'},{key:'player1'}], frameRate: 10, repeat: -1 });
+      this.anims.create({key:'thrust',frames:this.anims.generateFrameNumbers('player0',{start:0,end:1}),frameRate:10,repeat:-1});
+      this.anims.create({key:'explode',frames:this.anims.generateFrameNumbers('particle',{start:0,end:3}),frameRate:16});
       this.scene.start('MenuScene');
     }
   }
@@ -145,7 +204,7 @@
       this.createBackground();
       this.player=this.physics.add.sprite(W/2,C.PLAYER_MAX_Y,'player0').play('thrust');
       this.player.setCollideWorldBounds(true).setDragX(C.PLAYER_DRAG).setMaxVelocity(C.PLAYER_SPEED,C.PLAYER_SPEED);
-      this.player.body.setSize(12,12).setOffset(10,10);
+      this.player.body.setSize(16,18).setOffset(16,12);
       this.bullets=this.physics.add.group({ maxSize:40 });
       this.missiles=this.physics.add.group({ maxSize:C.MISSILE_MAX_ACTIVE });
       this.enemies=this.physics.add.group({ maxSize:C.MAX_ENEMIES });
@@ -165,8 +224,28 @@
     }
     createBackground() {
       this.bg=[];
-      for(let i=0;i<36;i++) this.bg.push(this.add.image(Phaser.Math.Between(5,W-5),Phaser.Math.Between(0,H),'star').setDepth(-5));
-      this.rails=this.add.graphics().setDepth(-4);
+      for(let i=0;i<30;i++){
+        const s=this.add.image(Phaser.Math.Between(135,W-5),Phaser.Math.Between(0,H),'star')
+          .setDepth(-8).setAlpha(Phaser.Math.FloatBetween(.35,1)).setScale(Phaser.Math.RND.pick([.6,.8,1]));
+        s.parallax=Phaser.Math.FloatBetween(.12,.3);this.bg.push(s);
+      }
+      this.clouds=[];
+      for(let i=0;i<5;i++){
+        const cloud=this.add.image(Phaser.Math.Between(145,W-10),i*150+Phaser.Math.Between(-30,30),'cloud')
+          .setDepth(-7).setAlpha(.45).setScale(Phaser.Math.FloatBetween(1,2));
+        cloud.parallax=.18;this.clouds.push(cloud);
+      }
+      this.cable=this.add.tileSprite(48,H/2,16,H,'cable').setDepth(-4);
+      this.beams=[];
+      for(let i=0;i<10;i++)this.beams.push(this.add.image(64,i*80,'beam').setDepth(-3));
+      this.platforms=[];
+      for(let i=0;i<3;i++)this.platforms.push(this.add.image(64,i*320+120,'platform').setDepth(-2));
+      this.debris=[];
+      for(let i=0;i<9;i++){
+        const d=this.add.image(Phaser.Math.Between(145,W),Phaser.Math.Between(0,H),'debris')
+          .setDepth(-1).setAlpha(Phaser.Math.FloatBetween(.45,.9));
+        d.drift=Phaser.Math.FloatBetween(.7,1.25);this.debris.push(d);
+      }
     }
     createHud() {
       this.scoreText=this.add.text(W/2,12,'SCORE 000000',textStyle(15,DB16.yellow)).setOrigin(.5,0).setScrollFactor(0).setDepth(20);
@@ -293,18 +372,18 @@
     burst(x,y,count,colors) {
       for(let i=0;i<count;i++){
         const p=this.particles.get(x,y,'particle'); if(!p)continue;
-        p.setActive(true).setVisible(true).setTint(colors[i%colors.length]);p.body.enable=true;
+        p.setActive(true).setVisible(true).setTint(colors[i%colors.length]).play('explode',true);p.body.enable=true;
         p.setVelocity(Phaser.Math.Between(-150,150),Phaser.Math.Between(-150,150));
         p.expire=this.time.now+Phaser.Math.Between(180,450);
       }
       Runtime.particleCounter+=count;
     }
     flash(x,y,color,size) {
-      const f=this.add.circle(x,y,size,color).setDepth(15);
-      this.tweens.add({targets:f,alpha:0,scale:2,duration:100,onComplete:()=>f.destroy()});
+      const f=this.add.image(x,y,'flare').setDepth(15).setTint(color).setScale(Math.max(.5,size/9));
+      this.tweens.add({targets:f,alpha:0,scale:f.scale*2,duration:100,onComplete:()=>f.destroy()});
     }
     ring(x,y) {
-      const r=this.add.circle(x,y,8,DB16.void,0).setStrokeStyle(2,DB16.cyan);
+      const r=this.add.image(x,y,'shockwave').setDepth(14);
       this.tweens.add({targets:r,scale:4,alpha:0,duration:240,onComplete:()=>r.destroy()});
     }
     hitstop(ms) {
@@ -365,14 +444,32 @@
       let next=1; for(let i=1;i<thresholds.length;i++)if(this.altitude>=thresholds[i])next=i+1;
       if(next!==this.stageNo)this.stageAdvance(next);
       this.scrollSpeed=STAGE_SCROLL_BASE+(this.stageNo-1)*STAGE_SCROLL_BOOST; Runtime.scrollSpeed=this.scrollSpeed;
-      this.bg.forEach(s=>{s.y+=this.scrollSpeed*dt*(.25+s.scaleX*.2);if(s.y>H)s.y=-3;});
-      this.rails.clear().fillStyle(this.stageNo<4?DB16.brown:DB16.gray,.8)
-        .fillRect(73,0,5,H).fillRect(W-78,0,5,H);
-      for(let y=(time*this.scrollSpeed/1000)%70-70;y<H;y+=70)this.rails.fillRect(73,y,W-146,3);
+      this.bg.forEach(s=>{s.y+=this.scrollSpeed*dt*s.parallax;if(s.y>H+5)s.y=-5;});
+      this.clouds.forEach(s=>{
+        s.setVisible(this.stageNo<4);s.y+=this.scrollSpeed*dt*s.parallax;
+        if(s.y>H+20)s.y=-20;
+      });
+      this.cable.tilePositionY-=this.scrollSpeed*dt;
+      this.beams.forEach(s=>{s.y+=this.scrollSpeed*dt;if(s.y>H+20)s.y-=800;});
+      this.platforms.forEach(s=>{s.y+=this.scrollSpeed*dt;if(s.y>H+30)s.y-=960;});
+      this.debris.forEach(s=>{
+        s.y+=this.scrollSpeed*dt*s.drift;s.x+=Math.sin(time/400+s.y)*.12;
+        if(s.y>H+10){s.y=-10;s.x=Phaser.Math.Between(145,W);}
+      });
       let dir=0;
       if(this.touch)dir=this.touch.x<W/2?-1:1;
       else if(this.cursors)dir=(this.cursors.left.isDown?-1:0)+(this.cursors.right.isDown?1:0);
       this.player.setAccelerationX(dir*C.PLAYER_ACCELERATION);
+      this.player.anims.msPerFrame=dir?70:115;
+      if(!this.nextExhaust||time>this.nextExhaust){
+        const p=this.particles.get(this.player.x+Phaser.Math.Between(-5,5),this.player.y+23,'particle');
+        if(p){
+          p.setActive(true).setVisible(true).setFrame(dir?1:0).setScale(dir?1:.7);
+          p.clearTint();p.body.enable=true;p.setVelocity(Phaser.Math.Between(-20,20),Phaser.Math.Between(70,125));
+          p.expire=time+(dir?260:160);
+        }
+        this.nextExhaust=time+(dir?34:65);
+      }
       if(this.touch&&time>=this.nextShot){this.fireBullet();this.nextShot=time+C.BULLET_INTERVAL;}
       if(this.touch&&!this.touch.locked&&time-this.touch.start>=C.MISSILE_LOCK_TIME)this.acquireLocks();
       this.player.y=Math.min(C.PLAYER_MAX_Y,this.player.y+Math.sin(time/160)*.03);
