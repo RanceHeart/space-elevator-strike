@@ -3916,6 +3916,7 @@
       autoCenter: Phaser.Scale.CENTER_BOTH,
       width: W,
       height: H,
+      autoRound: true,
     },
     physics: {
       default: "arcade",

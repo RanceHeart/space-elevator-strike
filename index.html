@@ -9,17 +9,44 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
       width: 100%; height: 100%;
-      background: #140C1C;
       overflow: hidden;
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+    }
+    body {
+      background-color: #140C1C;
+      background-image:
+        radial-gradient(1px 1px at 12% 8%, #DEEED6 100%, transparent),
+        radial-gradient(1px 1px at 25% 45%, #8595A1 100%, transparent),
+        radial-gradient(1.5px 1.5px at 38% 72%, #DEEED6 100%, transparent),
+        radial-gradient(1px 1px at 50% 15%, #597DCE 100%, transparent),
+        radial-gradient(1px 1px at 62% 55%, #DEEED6 100%, transparent),
+        radial-gradient(1.5px 1.5px at 75% 25%, #8595A1 100%, transparent),
+        radial-gradient(1px 1px at 85% 80%, #DEEED6 100%, transparent),
+        radial-gradient(1px 1px at 92% 35%, #597DCE 100%, transparent),
+        radial-gradient(1px 1px at 5% 90%, #DEEED6 100%, transparent),
+        radial-gradient(1.5px 1.5px at 45% 50%, #6DC2CA 100%, transparent),
+        radial-gradient(1px 1px at 68% 10%, #DEEED6 100%, transparent),
+        radial-gradient(1px 1px at 18% 60%, #DAD45E 100%, transparent);
+      background-size: 250px 250px;
     }
     #game-container {
       width: 100%; height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+    #game-container canvas {
+      border: 2px solid #30346D;
+      box-shadow:
+        0 0 0 1px #4E4A4F,
+        0 0 0 2px #140C1C,
+        0 0 0 3px #30346D,
+        0 0 30px rgba(89,125,206,0.25);
+      border-radius: 1px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
   </style>
 </head>
